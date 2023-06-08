@@ -25,7 +25,7 @@ use App\CustomPromotion;
 class VoucherController extends apiBaseController
 {
     public function all(Request $request){
-        
+
         $vouchers = Voucher::get('voucher_data');
 
         return $this->sendResponse('vouchers', $vouchers);
@@ -41,9 +41,9 @@ class VoucherController extends apiBaseController
         $product_sales = DB::table('profits')->select(DB::raw('COALESCE(SUM(total_profits)) as total'))->whereDate('voucher_date',$today)->get();
         $popping_sales = DB::table('raw_material_profits')->select(DB::raw('COALESCE(SUM(total_profits)) as total'))->get();
         $today_sales = DB::table('vouchers')->select(DB::raw('COALESCE(SUM(voucher_grand_total)) as total'))->whereDate('date',$today)->get();
-        
+
         $product_qty_revenues = Profit::whereDate('voucher_date',$today)->orderBy('qty','desc')->get();
-        
+
         foreach($product_qty_revenues as $revenue) {
             $product = Product::find($revenue->product_id);
             $size = Price::find($revenue->price_id);
@@ -51,7 +51,7 @@ class VoucherController extends apiBaseController
             $revenue['size_name'] = $size->size;
             $revenue['product_image'] = url("/").'/image/product/'.$product->photo;
         }
-        
+
         return response()->json([
 
             'total_sales' => getIntValue($total_sales),
@@ -66,9 +66,9 @@ class VoucherController extends apiBaseController
         ]);
 
     }
-    
+
     public function getDailyBestSale(Request $request){
-        
+
         $validator = Validator::make($request->all(), [
             "date" => "required",
         ]);
@@ -76,10 +76,10 @@ class VoucherController extends apiBaseController
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
-        
-        
+
+
         $product_qty_revenues = Profit::whereDate('voucher_date',$request->date)->orderBy('qty','desc')->get();
-        
+
         foreach($product_qty_revenues as $revenue) {
             $product = Product::find($revenue->product_id);
             $size = Price::find($revenue->price_id);
@@ -87,20 +87,20 @@ class VoucherController extends apiBaseController
             $revenue['size_name'] = $size->size;
             $revenue['product_image'] = url("/").'/image/product/'.$product->photo;
         }
-        
+
         return $this->sendResponse('data',$product_qty_revenues);
     }
-    
+
     public function getReorderList(Request $request) {
         $raw_material = [];
         $raw_materials = RawMaterial::all();
-        
+
         foreach($raw_materials as $raw) {
             if($raw->reorder_qty > $raw->instock_qty) {
                 array_push($raw_material,$raw);
             }
         }
-        
+
         return $this->sendResponse('data',$raw_material);
     }
 
@@ -139,7 +139,7 @@ class VoucherController extends apiBaseController
         if ($sizes->ingredients != null) {
 
             foreach ($sizes->ingredients as $ingredient) {
-            
+
                 $raw_qty = $ingredient->amount;
 
                 $raw_material = RawMaterial::find($ingredient->raw_material_id);
@@ -156,7 +156,7 @@ class VoucherController extends apiBaseController
         }
 
     }
-    
+
     //Check how many Foc Giveaway for today
     public function focLog($card_number, $product_id){
 
@@ -164,12 +164,12 @@ class VoucherController extends apiBaseController
             'loyalty_card_number' => $card_number,
             'product_id' => $product_id,
             'pay_date' => date('Y-m-d'),
-        ]); 
+        ]);
 
     }
 
     public function store(Request $request){
-        
+
         /*$validator = Validator::make($request->all(), [
             "name" => "required",
             "category_id" => "required",
@@ -184,7 +184,7 @@ class VoucherController extends apiBaseController
         $raw_qty = 0;
         $total_profits = 0;
         $order_qty = 0;
-        
+
 
         foreach ($request->voucher as $value) {
             $grand_total += $value['totalPrice'];
@@ -197,7 +197,7 @@ class VoucherController extends apiBaseController
 
             $order_qty += $value['order_qty'];
 
-            
+
 
             $size = Price::where('size',$value['size'])
                 ->where('product_id',$value['id'])
@@ -218,7 +218,7 @@ class VoucherController extends apiBaseController
                     'voucher_date' => $today,
                 ]);
             }else{
-                $profits->total_profits += $value['selling_price'] * $value['order_qty']; 
+                $profits->total_profits += $value['selling_price'] * $value['order_qty'];
                 $profits->qty += $value['order_qty']; //add qty to product revenue if available profit
                 $profits->save();
             }
@@ -236,7 +236,7 @@ class VoucherController extends apiBaseController
 
             //decreasing from raw material when voucher ingredient of product
             foreach ($size->ingredients as $ingredient) {
-                
+
                 $raw_qty = $ingredient->amount * $value['order_qty'];
 
                 $raw_material = RawMaterial::find($ingredient->raw_material_id);
@@ -254,7 +254,7 @@ class VoucherController extends apiBaseController
             //decresing from raw material when poping is in voucher
             if (!empty($value['poping_list'])) {
                 foreach ($value['poping_list'] as $poping) {
-                
+
                     $raw_material_qty = $poping['raw_material_qty'];
 
                     $raw_material = RawMaterial::find($poping['raw_material_id']);
@@ -287,18 +287,18 @@ class VoucherController extends apiBaseController
 
                 }
             }
-            
+
         }
 
         // if (isset($request->card_number)) {
-            
+
         //     $card_number = $request->card_number;
-            
+
         //     $loyalty_cards = LoyaltyCard::where('card_number',$card_number)
         //                 ->count();
-            
+
         //     if ($loyalty_cards == 0) {
-                
+
         //         $loyalty_card = LoyaltyCard::create([
         //             'card_number' => $card_number,
         //             'customer_id' => $request->customer_id??null,
@@ -321,32 +321,32 @@ class VoucherController extends apiBaseController
         //         $count = $loyalty_card->count;
 
         //         $loyalty_card->count += $order_qty;
-                
+
         //         $loyalty_card->save();
 
         //         if ( $loyalty_card->count >= 7 && $loyalty_card->count < 14) {
 
         //             if ($request->reward == "accept") {
-                        
+
         //                     $this->reduceRawMaterial(1);
         //                     $this->focLog($loyalty_card->card_number,1);
 
         //             }elseif ( $request->reward == "add" ) {
-                
+
         //                 $loyalty_card->count += 1;
         //                 $loyalty_card->save();
         //             }
-                
+
 
         //         }elseif ( $loyalty_card->count >= 14 && $loyalty_card->count < 21 ) {
 
         //             if ($request->reward == "accept") {
-                        
+
         //                     $this->reduceRawMaterial(1);
         //                     $this->focLog($loyalty_card->card_number,1);
 
         //             }elseif ( $request->reward == "add" ) {
-                        
+
         //                 $loyalty_card->count += 1;
         //                 $loyalty_card->save();
 
@@ -355,12 +355,12 @@ class VoucherController extends apiBaseController
         //         }elseif ( $loyalty_card->count >= 21 && $loyalty_card->count < 28 ) {
 
         //             if ($request->reward == "accept") {
-                        
+
         //                     $this->reduceRawMaterial(2);
         //                     $this->focLog($loyalty_card->card_number,2);
 
         //             }elseif ( $request->reward == "add" ) {
-                        
+
         //                 $loyalty_card->count += 1;
         //                 $loyalty_card->save();
         //             }
@@ -368,19 +368,19 @@ class VoucherController extends apiBaseController
         //         }elseif ( $loyalty_card->count >= 28 && $loyalty_card->count < 35 ) {
 
         //             if ($request->reward == "accept") {
-                        
+
         //                     $this->reduceRawMaterial(2);
         //                     $this->focLog($loyalty_card->card_number,2);
 
         //             }elseif ( $request->reward == "add" ) {
-                        
+
         //                 $loyalty_card->count += 1;
         //                 $loyalty_card->save();
 
         //             }
 
         //         }elseif ( $loyalty_card->count >= 35 ) {
-                        
+
         //             $this->reduceRawMaterial(3);
         //             $this->focLog($loyalty_card->card_number,3);
 
@@ -388,7 +388,7 @@ class VoucherController extends apiBaseController
         //             $loyalty_card->save();
 
         //             if ($request->vip != null) {
-                        
+
         //                 $first_card = VipCard::create([
         //                     'loyalty_number' => $loyalty_card->card_number,
         //                     'card_number' => $request->card_number,
@@ -415,7 +415,7 @@ class VoucherController extends apiBaseController
         // }
 
         // if ($request->vip_card != null) {
-            
+
         //     $vip_card = VipCard::where('card_number',$request->vip_card)->first();
         //     $vip_card->consume = $grand_total;
         //     $vip_card->save();
@@ -434,17 +434,17 @@ class VoucherController extends apiBaseController
             'cashback_flag' => $request->cashback_flag??0,
             'cashback' => $request->cashback??0,
         ]);
-        
+
         $voucher->voucher_number = sprintf("%05s", $voucher->id);
         $voucher->save();
-        
+
         $customer = Customer::find($voucher->customer_id);
 
         if($request->promotion_id) {
             $promotion = CustomPromotion::select('id','reward_flag','cashback_amount','discount_percent','reward_product_id')
                     ->where('id',$request->promotion_id)->first();
         }
-        
+
         $customer = Customer::find($voucher->customer_id);
 
         return response()->json([
@@ -455,13 +455,13 @@ class VoucherController extends apiBaseController
             'success' => true,
             'message' => 'Successfully print Voucher',
         ]);
-        
+
         // return $this->sendResponse('voucher',$voucher->voucher_data);
 
     }
-    
+
     public function storev2(Request $request){
-        
+
         /*$validator = Validator::make($request->all(), [
             "name" => "required",
             "category_id" => "required",
@@ -476,7 +476,7 @@ class VoucherController extends apiBaseController
         $raw_qty = 0;
         $total_profits = 0;
         $order_qty = 0;
-        
+
 
         foreach ($request->voucher as $value) {
             $grand_total += $value['totalPrice'];
@@ -489,7 +489,7 @@ class VoucherController extends apiBaseController
 
             $order_qty += $value['order_qty'];
 
-            
+
 
             $size = Price::where('size',$value['size'])
                 ->where('product_id',$value['id'])
@@ -510,7 +510,7 @@ class VoucherController extends apiBaseController
                     'voucher_date' => $today,
                 ]);
             }else{
-                $profits->total_profits += $value['selling_price'] * $value['order_qty']; 
+                $profits->total_profits += $value['selling_price'] * $value['order_qty'];
                 $profits->qty += $value['order_qty']; //add qty to product revenue if available profit
                 $profits->save();
             }
@@ -528,7 +528,7 @@ class VoucherController extends apiBaseController
 
             //decreasing from raw material when voucher ingredient of product
             foreach ($size->ingredients as $ingredient) {
-                
+
                 $raw_qty = $ingredient->amount * $value['order_qty'];
 
                 $raw_material = RawMaterial::find($ingredient->raw_material_id);
@@ -546,7 +546,7 @@ class VoucherController extends apiBaseController
             //decresing from raw material when poping is in voucher
             if (!empty($value['poping_list'])) {
                 foreach ($value['poping_list'] as $poping) {
-                
+
                     $raw_material_qty = $poping['raw_material_qty'];
 
                     $raw_material = RawMaterial::find($poping['raw_material_id']);
@@ -579,18 +579,18 @@ class VoucherController extends apiBaseController
 
                 }
             }
-            
+
         }
 
         // if (isset($request->card_number)) {
-            
+
         //     $card_number = $request->card_number;
-            
+
         //     $loyalty_cards = LoyaltyCard::where('card_number',$card_number)
         //                 ->count();
-            
+
         //     if ($loyalty_cards == 0) {
-                
+
         //         $loyalty_card = LoyaltyCard::create([
         //             'card_number' => $card_number,
         //             'customer_id' => $request->customer_id??null,
@@ -613,32 +613,32 @@ class VoucherController extends apiBaseController
         //         $count = $loyalty_card->count;
 
         //         $loyalty_card->count += $order_qty;
-                
+
         //         $loyalty_card->save();
 
         //         if ( $loyalty_card->count >= 7 && $loyalty_card->count < 14) {
 
         //             if ($request->reward == "accept") {
-                        
+
         //                     $this->reduceRawMaterial(1);
         //                     $this->focLog($loyalty_card->card_number,1);
 
         //             }elseif ( $request->reward == "add" ) {
-                
+
         //                 $loyalty_card->count += 1;
         //                 $loyalty_card->save();
         //             }
-                
+
 
         //         }elseif ( $loyalty_card->count >= 14 && $loyalty_card->count < 21 ) {
 
         //             if ($request->reward == "accept") {
-                        
+
         //                     $this->reduceRawMaterial(1);
         //                     $this->focLog($loyalty_card->card_number,1);
 
         //             }elseif ( $request->reward == "add" ) {
-                        
+
         //                 $loyalty_card->count += 1;
         //                 $loyalty_card->save();
 
@@ -647,12 +647,12 @@ class VoucherController extends apiBaseController
         //         }elseif ( $loyalty_card->count >= 21 && $loyalty_card->count < 28 ) {
 
         //             if ($request->reward == "accept") {
-                        
+
         //                     $this->reduceRawMaterial(2);
         //                     $this->focLog($loyalty_card->card_number,2);
 
         //             }elseif ( $request->reward == "add" ) {
-                        
+
         //                 $loyalty_card->count += 1;
         //                 $loyalty_card->save();
         //             }
@@ -660,19 +660,19 @@ class VoucherController extends apiBaseController
         //         }elseif ( $loyalty_card->count >= 28 && $loyalty_card->count < 35 ) {
 
         //             if ($request->reward == "accept") {
-                        
+
         //                     $this->reduceRawMaterial(2);
         //                     $this->focLog($loyalty_card->card_number,2);
 
         //             }elseif ( $request->reward == "add" ) {
-                        
+
         //                 $loyalty_card->count += 1;
         //                 $loyalty_card->save();
 
         //             }
 
         //         }elseif ( $loyalty_card->count >= 35 ) {
-                        
+
         //             $this->reduceRawMaterial(3);
         //             $this->focLog($loyalty_card->card_number,3);
 
@@ -680,7 +680,7 @@ class VoucherController extends apiBaseController
         //             $loyalty_card->save();
 
         //             if ($request->vip != null) {
-                        
+
         //                 $first_card = VipCard::create([
         //                     'loyalty_number' => $loyalty_card->card_number,
         //                     'card_number' => $request->card_number,
@@ -707,7 +707,7 @@ class VoucherController extends apiBaseController
         // }
 
         // if ($request->vip_card != null) {
-            
+
         //     $vip_card = VipCard::where('card_number',$request->vip_card)->first();
         //     $vip_card->consume = $grand_total;
         //     $vip_card->save();
@@ -728,17 +728,17 @@ class VoucherController extends apiBaseController
             'tax_flag' => $request->tax_flag??0,
             'tax_amount' => $request->taxamount??0,
         ]);
-        
+
         $voucher->voucher_number = sprintf("%05s", $voucher->id);
         $voucher->save();
-        
+
         $customer = Customer::find($voucher->customer_id);
 
         if($request->promotion_id) {
             $promotion = CustomPromotion::select('id','reward_flag','cashback_amount','discount_percent','reward_product_id')
                     ->where('id',$request->promotion_id)->first();
         }
-        
+
         $customer = Customer::find($voucher->customer_id);
 
         return response()->json([
@@ -749,7 +749,7 @@ class VoucherController extends apiBaseController
             'success' => true,
             'message' => 'Successfully print Voucher',
         ]);
-        
+
         // return $this->sendResponse('voucher',$voucher->voucher_data);
 
     }
@@ -762,7 +762,7 @@ class VoucherController extends apiBaseController
             $grand_total += $value['totalPrice'];
 
             $today = date('Y-m-d');
-            
+
         }
 
         $voucher = VoucherTest::create([
@@ -777,15 +777,15 @@ class VoucherController extends apiBaseController
             'cashback_flag' => $request->cashback_flag??0,
             'cashback' => $request->cashback??0,
         ]);
-        
+
         $voucher->voucher_number = sprintf("%05s", $voucher->id);
         $voucher->save();
-        
+
         if($request->promotion_id) {
             $promotion = CustomPromotion::select('id','reward_flag','cashback_amount','discount_percent','reward_product_id')
                     ->where('id',$request->promotion_id)->first();
         }
-        
+
         $customer = Customer::find($voucher->customer_id);
 
         return response()->json([
@@ -798,7 +798,7 @@ class VoucherController extends apiBaseController
         ]);
 
     }
-    
+
     public function deleteVoucher(Request $request){
 
         $validator = Validator::make($request->all(), [
@@ -808,50 +808,50 @@ class VoucherController extends apiBaseController
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
-        
+
 
         $voucher = Voucher::find($request->voucher_id);
         if(empty($voucher)) {
             return $this->sendError('204','Voucher not found!');
         }
-        
+
         $grand_total = 0;
         $raw_qty = 0;
         $total_profits = 0;
         $order_qty = 0;
-        
+
 
         foreach ($voucher->voucher_data as $value) {
             // $grand_total += $value['totalPrice'];
 
             $today = date('Y-m-d');
-            
+
             $total_price = $value->selling_price * $value->order_qty; //total price of product
-            
+
             $promotion = CustomPromotion::find($voucher->promotion_id);
-            
+
             $percent = 0; // assign percent if promotion is available
-            
+
             //calc promotion for total_price if available promotion
             if(!empty($promotion)){
                 if($promotion->reward_flag == 0){
                     $total_price = $total_price - $promotion->cashback_amount;
                 }elseif($promotion->reward_flag == 1){
                     $percent = $promotion->discount_percent/100 * $total_price;
-                    
+
                     $total_price = $total_price - $percent;
-                    
+
                 }
             }
-            
+
             $customer = Customer::find($voucher->customer_id);
-            
+
             if(!empty($customer)) {
-                
+
                 $total_price = round($total_price + ($customer->tax_percent/100 * $total_price));
-                
+
             }
-            
+
             $grand_total += $total_price;
 
             $total_profits = $value->selling_price;
@@ -860,7 +860,7 @@ class VoucherController extends apiBaseController
 
             $order_qty += $value->order_qty;
 
-            
+
 
             $size = Price::where('size',$value->size)
                 ->where('product_id',$value->id)
@@ -891,7 +891,7 @@ class VoucherController extends apiBaseController
 
             //decreasing from raw material when voucher ingredient of product
             foreach ($size->ingredients as $ingredient) {
-                
+
                 $raw_qty = $ingredient->amount * $value->order_qty;
 
                 $raw_material = RawMaterial::find($ingredient->raw_material_id);
@@ -909,7 +909,7 @@ class VoucherController extends apiBaseController
             //decresing from raw material when poping is in voucher
             if (!empty($value->poping_list)) {
                 foreach ($value->poping_list as $poping) {
-                
+
                     $raw_material_qty = $poping->raw_material_qty;
 
                     $raw_material = RawMaterial::find($poping->raw_material_id);
@@ -930,39 +930,39 @@ class VoucherController extends apiBaseController
                             ->first();
 
                     if (!empty($raw_profits)) {
-                        
+
                         $promotion = CustomPromotion::find($voucher->promotion_id);
-                        
+
                         if(!empty($promotion)) {
                             if($promotion->reward_flag == 1) {
                                 $raw_sales = $raw_sales - ($promotion->discount_percent/100 * $raw_sales);
                             }
                         }
-                        
+
                         $customer = Customer::find($voucher->customer_id);
-                        
+
                         if(!empty($customer)) {
                             $raw_sales = round($raw_sales + ($customer->tax_percent/100 * $raw_sales));
                         }
-                        
+
                         $grand_total += $raw_sales;
-                        
+
                         $raw_profits->total_profits -= $raw_sales;
                         $raw_profits->save();
                     }
 
                 }
             }
-            
+
         }
         $voucher->delete();
         return $this->sendResponse('success','Succcessfully Deleted!');
 
     }
 
-    
+
     public function storeVipCard(Request $request){
-        
+
         $first_card = VipCard::create([
             'loyalty_number' => $request->loyalty_card_number,
             'card_number' => $request->card_number,
@@ -970,7 +970,7 @@ class VoucherController extends apiBaseController
             'customer_id' => $request->customer_id??null,
             'discount' => 5,
         ]);
-        
+
         Customer::create([
             'name' => $request->customer_name,
             'customer_id' => $request->customer_id??null,
@@ -981,17 +981,17 @@ class VoucherController extends apiBaseController
             'address' => $request->address??null,
             'phone' => $request->phone,
         ]);
-        
+
         return $this->sendResponse('vip_card',$first_card);
-        
-    }   
+
+    }
 
     public function getCupCount(Request $request){
 
         $validator = Validator::make($request->all(), [
             'card_number' => 'required',
         ]);
-        
+
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
@@ -1046,7 +1046,7 @@ class VoucherController extends apiBaseController
                             'message' => 'successful',
                         ]);
                 break;
-            
+
             default:
                 return $this->sendError('This Card is Already Done for Free of charges');
                 break;
@@ -1060,45 +1060,45 @@ class VoucherController extends apiBaseController
             'start_timetick' => 'required',
             'end_timetick' => 'required',
         ]);
-        
+
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
-        
+
         if($request->has('page')){
             $page_no = $request->page;
         }else{
             $page_no = 1;
         }
-        
+
         $start_timetick = $request->start_timetick;
         $end_timetick = $request->end_timetick; //add to end_timetick because of android endtimetick is the 12:00 AM of the end date
 
         $limit = 20;
         $offset = ($page_no*$limit)-$limit;
-        
+
         $vouchers = Voucher::whereBetween('vouchers.date', array($start_timetick, $end_timetick))
         ->orderBy('vouchers.date')->get();
-        
+
         // $vouchers = Voucher::whereBetween('vouchers.date', array($start_timetick, $end_timetick))
         // ->offset($offset)->take($limit)->orderBy('vouchers.date')->get();
-        
+
         foreach($vouchers as $voucher) {
             $customer = Customer::find($voucher->customer_id);
             $promotion = CustomPromotion::select('id','name','reward_flag','cashback_amount','discount_percent','reward_product_id')
                     ->where('id',$voucher->promotion_id)->first();
-                    
+
             if(!empty($promotion)){
                 $product = Product::find($promotion->reward_product_id);
                 $promotion['reward_product_name'] = $product->name??null;
-                
+
             }
-            
+
             $voucher['customer_name'] = $customer->name??null;
             $voucher['customer_tax'] = $customer->tax_percent??null;
             $voucher['promotion'] = $promotion??null;
         }
-        
+
         return $this->sendResponse('vouchers', $vouchers);
 
     }
@@ -1108,42 +1108,42 @@ class VoucherController extends apiBaseController
             'start_timetick' => 'required',
             'end_timetick' => 'required',
         ]);
-        
+
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
-        
+
         if($request->has('page')){
             $page_no = $request->page;
         }else{
             $page_no = 1;
         }
-        
+
         $start_timetick = $request->start_timetick;
         $end_timetick = $request->end_timetick; //add to end_timetick because of android endtimetick is the 12:00 AM of the end date
 
         $limit = 20;
         $offset = ($page_no*$limit)-$limit;
-        
+
         $vouchers = VoucherTest::whereBetween('voucher_tests.date', array($start_timetick, $end_timetick))
         ->offset($offset)->take($limit)->orderBy('voucher_tests.date')->get();
-        
+
         foreach($vouchers as $voucher) {
             $customer = Customer::find($voucher->customer_id);
             $promotion = CustomPromotion::select('id','name','reward_flag','cashback_amount','discount_percent','reward_product_id')
                     ->where('id',$voucher->promotion_id)->first();
-                    
+
             if(!empty($promotion)){
                 $product = Product::find($promotion->reward_product_id);
                 $promotion['reward_product_name'] = $product->name??null;
-                
+
             }
-            
+
             $voucher['customer_name'] = $customer->name??null;
             $voucher['customer_tax'] = $customer->tax_percent??null;
             $voucher['promotion'] = $promotion??null;
         }
-        
+
         return $this->sendResponse('vouchers', $vouchers);
 
     }
@@ -1151,66 +1151,66 @@ class VoucherController extends apiBaseController
         // $validator = Validator::make($request->all(), [
         //     'voucher_id' => 'required',
         // ]);
-        
+
         // if ($validator->fails()) {
         //     return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         // }
-        
+
         // $voucher = Voucher::find($request->voucher_id);
         // $customer = Customer::find($voucher->customer_id);
         // $voucher['customer_name'] = $customer->name??null;
         // $voucher['customer_tax'] = $customer->tax_percent??null;
-        
+
         // return $this->sendResponse('voucher',$voucher);
         $validator = Validator::make($request->all(), [
             'voucher_id' => 'required',
         ]);
-        
+
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
-        
+
         $voucher = Voucher::find($request->voucher_id);
         $customer = Customer::find($voucher->customer_id);
         $promotion = CustomPromotion::select('id','name','reward_flag','cashback_amount','discount_percent','reward_product_id')
                     ->where('id',$voucher->promotion_id)->first();
-                    
+
         if(!empty($promotion)){
             $product = Product::find($promotion->reward_product_id);
             $promotion['reward_product_name'] = $product->name??null;
-            
+
         }
-        
+
         $voucher['customer_name'] = $customer->name??null;
         $voucher['customer_tax'] = $customer->tax_percent??null;
         $voucher['promotion'] = $promotion??null;
-        
+
         return $this->sendResponse('voucher',$voucher);
     }
     public function voucherDetailTest(Request $request){
         $validator = Validator::make($request->all(), [
             'voucher_id' => 'required',
         ]);
-        
+
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
-        
+
         $voucher = VoucherTest::find($request->voucher_id);
         $customer = Customer::find($voucher->customer_id);
         $promotion = CustomPromotion::select('id','name','reward_flag','cashback_amount','discount_percent','reward_product_id')
                     ->where('id',$voucher->promotion_id)->first();
-                    
+
         if(!empty($promotion)){
             $product = Product::find($promotion->reward_product_id);
             $promotion['reward_product_name'] = $product->name??null;
-            
+
         }
-        
+
         $voucher['customer_name'] = $customer->name??null;
         $voucher['customer_tax'] = $customer->tax_percent??null;
         $voucher['promotion'] = $promotion??null;
-        
+
         return $this->sendResponse('voucher',$voucher);
     }
 }

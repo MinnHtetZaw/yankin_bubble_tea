@@ -13,14 +13,14 @@ use Illuminate\Support\Facades\DB;
 class RawMaterialController extends apiBaseController
 {
     public function all(Request $request){
-        
+
         $raw_materials = RawMaterial::all();
 
         return $this->sendResponse('raw_materials', $raw_materials);
     }
 
     public function store(Request $request){
-        
+
         $validator = Validator::make($request->all(), [
             "name" => "required",
             "brand_id" => "required",
@@ -35,7 +35,7 @@ class RawMaterialController extends apiBaseController
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
-        
+
         if ($request->hasfile('topping_photo_path')) {
 
 			$image = $request->file('topping_photo_path');
@@ -43,7 +43,7 @@ class RawMaterialController extends apiBaseController
 			$image->move(public_path() . '/image/', $name);
 			$image = $name;
 		}
-        
+
         $raw_material = RawMaterial::create([
             "name" => $request->name,
             "category_id" => $request->category_id,
@@ -64,12 +64,12 @@ class RawMaterialController extends apiBaseController
         	$raw_material->topping_photo_path = $image;
         	$raw_material->save();
         }
-        
+
         return $this->sendResponse('raw_material', $raw_material);
     }
-    
+
     public function storev2(Request $request){
-        
+
         $validator = Validator::make($request->all(), [
             "name" => "required",
             "brand_id" => "required",
@@ -84,7 +84,7 @@ class RawMaterialController extends apiBaseController
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
-        
+
         if ($request->hasfile('topping_photo_path')) {
 
 			$image = $request->file('topping_photo_path');
@@ -92,7 +92,7 @@ class RawMaterialController extends apiBaseController
 			$image->move(public_path() . '/image/', $name);
 			$image = $name;
 		}
-        
+
         $raw_material = RawMaterial::create([
             "name" => $request->name,
             "category_id" => $request->category_id,
@@ -114,10 +114,10 @@ class RawMaterialController extends apiBaseController
         	$raw_material->topping_photo_path = $image;
         	$raw_material->save();
         }
-        
+
         return $this->sendResponse('raw_material', $raw_material);
     }
-    
+
     public function update(Request $request){
 
         $validator = Validator::make($request->all(), [
@@ -169,20 +169,20 @@ class RawMaterialController extends apiBaseController
             $raw_material->topping_sales_price = $request->topping_sales_price;
             $raw_material->topping_photo_path = $image;
             $raw_material->save();
-        }       
+        }
 
         return $this->sendResponse('raw_material', $raw_material);
 
     }
     public function storePurchase(Request $request) {
-        
-        
+
+
         $purchase_by = $request->purchase_by;
-        
+
         $total_amount = $request->total_amount;
 
     	$purchase = Purchase::create([
-    	    
+
             'raw_material_id' => $request->raw_material_id??null,
             'purchase_qty' => $request->purchase_qty,
             'supplier_id' => $request->supplier_id,
@@ -192,19 +192,19 @@ class RawMaterialController extends apiBaseController
             'purchase_date' => $request->purchase_date,
             'total_amount' => $total_amount??0,
     	]);
-    	
+
     	$raw_material = RawMaterial::find($request->raw_material_id);
-        
+
         if(empty($raw_material)) {
             return $this->sendError('Raw material not found');
         }
-        
+
         $raw_material->instock_qty += $request->purchase_qty;
         $raw_material->save();
-    	
+
     	return $this->sendResponse('purchase', $purchase);
     }
-    
+
     public function stockUpdate(Request $request) {
         $validator = Validator::make($request->all(), [
             "raw_material_id" => "required",
@@ -212,36 +212,36 @@ class RawMaterialController extends apiBaseController
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
-        
-        $raw_material = RawMaterial::find($request->raw-material_id);
-        
+
+        $raw_material = RawMaterial::find($request->raw_material_id);
+
         if(empty($raw_material)) {
             return $this->sendError('Raw material not found');
         }
-        
+
         $raw_material->instock_qty += $request->income_qty;
         $raw_material->save();
-        
+
         return $this->sendResponse('data',$raw_material);
     }
-    
+
     public function purchaseList() {
         $purchase = Purchase::orderBy('purchase_date','desc')->get();
-        
+
         /*$pur = Purchase::orderBy('id','desc')
             ->join('raw_materials', 'purchases.raw_material_id', '=', 'raw_materials.id')
             ->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
             ->select('purchases.*', 'raw_materials.instock_qty', 'suppliers.name')
             ->get();*/
-        
+
         foreach($purchase as $p) {
             $raw_material = RawMaterial::find($p->raw_material_id);
             $supplier = Supplier::find($p->supplier_id);
-            
+
             $p['raw_maetrial_name'] = $raw_material->name??null;
             $p['supplier_name'] = $supplier->name??null;
          }
-         
+
          return $this->sendResponse('data',$purchase);
     }
 }

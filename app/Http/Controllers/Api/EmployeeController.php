@@ -12,21 +12,21 @@ use Illuminate\Support\Str;
 class EmployeeController extends apiBaseController
 {
     public function all(Request $request){
-        
+
         $employees = Employee::all();
 
         return $this->sendResponse('employees', $employees);
     }
 
     public function store(Request $request){
-        
+
         $validator = Validator::make($request->all(), [
             "name" => "required",
             "address" => "required",
             "phone" => "required",
             "email" => "required",
             'password' => "required",
-            "role" => "required",
+            // "role" => "required",
         ]);
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
@@ -36,10 +36,10 @@ class EmployeeController extends apiBaseController
 
 			$image = $request->file('photo');
 			$name = $image->getClientOriginalName();
-			$image->move(public_path() . '/image/product/', $name);
+			$image->move(public_path() . '/image/employee/', $name);
 			$image = $name;
 		}
-        
+
         $employee = Employee::create([
             "name" => $request->name,
             "address" => $request->address,
@@ -49,7 +49,7 @@ class EmployeeController extends apiBaseController
             "nrc" => $request->nrc??null,
             "salary" => $request->salary??null,
         ]);
-        
+
         $user = User::create([
 			'name' => $request->name,
 			'email' => $request->email,
@@ -76,7 +76,7 @@ class EmployeeController extends apiBaseController
             "address" => "required",
             "phone" => "required",
             "email" => "required",
-            'password' => "required",
+            // 'password' => "required",
         ]);
         if ($validator->fails()) {
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
@@ -92,7 +92,7 @@ class EmployeeController extends apiBaseController
 
             $image = $request->file('photo');
             $name = $image->getClientOriginalName();
-            $image->move(public_path() . '/image/', $name);
+            $image->move(public_path() . '/image/employee/', $name);
             $image = $name;
             $employee->photo = $image;
             $employee->save();
@@ -112,7 +112,7 @@ class EmployeeController extends apiBaseController
             return $this->sendError('User not found!');
         }
 
-        $user->removeRole($user->roles[0]);
+        // $user->removeRole($user->roles[0]); // minnhtetzaw
 
         $user->name = $request->name;
         $user->email = $request->email;
@@ -120,7 +120,7 @@ class EmployeeController extends apiBaseController
         $user->save();
 
         if ($request->has('role')) {
-            
+
             $user->assignRole($request->role);
             $user->save();
         }
@@ -128,4 +128,12 @@ class EmployeeController extends apiBaseController
         return $this->sendResponse('employee', $employee);
 
     }
+
+    // public function testuser($id){
+    //     $employee = Employee::find($id);
+
+    //     $user = User::find($employee->user_id);
+
+    //     dd($user->roles['name']);
+    // }
 }

@@ -294,6 +294,7 @@ class ProductController extends apiBaseController
 
         $product = Product::find($request->product_id);
 
+
         $product->size_of_ingredient = $request->size_of_ingredient;
         $product->save();
 
@@ -302,6 +303,7 @@ class ProductController extends apiBaseController
             $price = Price::where('product_id',$product->id)
                     ->where('size',$value['size'])
                     ->first();
+
 
             // if(!empty($price)){
             //
@@ -340,7 +342,11 @@ class ProductController extends apiBaseController
                 else{
                     $price->sell_price = $value['sell_price'];
                     $price->deli_price = $value['deli_price'];
+                    // $price->unit_name = $value['unit_name'];
+                    // $price->amount = $value['amount'];
                     $price->save();
+
+
                 }
 
         }
@@ -368,7 +374,7 @@ class ProductController extends apiBaseController
             Option::create([
                 'name' => $option['name'],
                 'product_id' => $option['product_id'],
-                'size' => $option['size'],
+                // 'size' => $option['size'],
                 'raw_material_id' => $option['raw_material_id'],
                 'amount' => $option['amount'],
             ]);

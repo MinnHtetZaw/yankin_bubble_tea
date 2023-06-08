@@ -110,6 +110,8 @@ Route::post('/customers/update', 'Api\CustomerController@update');
 Route::post('/employees', 'Api\EmployeeController@all');
 Route::post('/employees/store', 'Api\EmployeeController@store');
 Route::post('/employees/update', 'Api\EmployeeController@update');
+// Route::get('test/user/{id}','Api\EmployeeController@testuser');
+
 
 //get Payment Token from 2c2p
 Route::post('/paymentToken','Api\CustomerController@paymentToken');

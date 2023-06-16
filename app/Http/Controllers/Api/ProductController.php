@@ -67,8 +67,6 @@ class ProductController extends apiBaseController
     }
         $data->save();
 
-
-
         return response()->json(['products'=>$data]);
 
     }

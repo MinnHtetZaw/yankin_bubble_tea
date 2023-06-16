@@ -18,22 +18,22 @@ class ProductController extends apiBaseController
 
         $products = Product::with('ingredients')->get();
 
-        // foreach ($products as $product) {
-        //     if ($product->custom_discount_id != null) {
-        //         $custom_discount = CustomDiscount::find($product->custom_discount_id);
-        //         $product['discount'] = $custom_discount;
-        //     }
+        foreach ($products as $product) {
+            if ($product->custom_discount_id != null) {
+                $custom_discount = CustomDiscount::find($product->custom_discount_id);
+                $product['discount'] = $custom_discount;
+            }
 
 
-        //     if($product->photo){
+            if($product->photo){
 
-        //         $product->photo = url("/").'/image/product/'.$product->photo;
-        //     }
-        //     else{
-        //         $product->photo = url("/").'/image/product/default.png';
-        //     }
+                $product->photo = url("/").'/image/product/'.$product->photo;
+            }
+            else{
+                $product->photo = url("/").'/image/product/default.png';
+            }
 
-        // }
+        }
 
         return $this->sendResponse('products', $products);
 

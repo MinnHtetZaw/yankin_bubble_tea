@@ -741,11 +741,13 @@ class VoucherController extends apiBaseController
 
         $customer = Customer::find($voucher->customer_id);
 
+        $customer == null ? $customer['name'] = "No Customer" : $customer;
+
         return response()->json([
             'voucher_number' => $voucher->voucher_number,
             'promotion' => $promotion??null,
             'voucher' => $voucher->voucher_data,
-            'customer' => $customer??'No Customer',
+            'customer' =>  $customer,
             'success' => true,
             'message' => 'Successfully print Voucher',
         ]);

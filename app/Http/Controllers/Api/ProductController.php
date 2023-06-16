@@ -84,7 +84,7 @@ class ProductController extends apiBaseController
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
 
-        if ($request->hasfile(' ')) {
+        if ($request->hasfile('photo')) {
 
             $image = $request->file('photo');
             $name = $image->getClientOriginalName();

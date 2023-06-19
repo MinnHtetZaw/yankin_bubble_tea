@@ -86,6 +86,7 @@ Route::post('/vouchers/profit', 'Api\VoucherController@profit');
 Route::post('/vouchers/getMonthlySales', 'Api\VoucherController@getMonthlySales');
 Route::post('/vouchers/best-sale', 'Api\VoucherController@getDailyBestSale');
 Route::post('/vouchers/reorder', 'Api\VoucherController@getReorderList');
+Route::get('/vouchers/getSalesTotal','Api\VoucherController@getSalesTotal');
 
 //Discount
 Route::get('/discounts', 'Api\DiscountController@all');

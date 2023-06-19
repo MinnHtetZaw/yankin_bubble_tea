@@ -2,25 +2,26 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\apiBaseController;
-use Illuminate\Http\Request;
-use App\Product;
-use App\RawMaterial;
-use App\Price;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
-use App\Helpers\Helpers;
-use App\Voucher;
-use App\Profit;
-use App\Option;
-use App\RawMaterialProfit;
-use App\LoyaltyCard;
 use App\Foc;
-use App\Customer;
+use App\Price;
 use App\FocLog;
+use App\Option;
+use App\Profit;
+use App\Product;
 use App\VipCard;
+use App\Voucher;
+use App\Customer;
+use Carbon\Carbon;
+use App\LoyaltyCard;
+use App\RawMaterial;
 use App\VoucherTest;
 use App\CustomPromotion;
+use App\Helpers\Helpers;
+use App\RawMaterialProfit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\apiBaseController;
 
 class VoucherController extends apiBaseController
 {
@@ -111,10 +112,11 @@ class VoucherController extends apiBaseController
         $monthly_sales = DB::table('vouchers')->select(DB::raw('COALESCE(SUM(voucher_grand_total)) as total'))->whereMonth('date',$monthly)->get();
 
         $monthly_products_sales = DB::table('profits')->select(DB::raw('COALESCE(SUM(total_profits)) as total'))->whereMonth('voucher_date',$monthly)->get();
-
         $monthly_popping_sales = DB::table('raw_material_profits')->select(DB::raw('COALESCE(SUM(total_profits)) as total'))->whereMonth('voucher_date',$monthly)->get();
         $monthly_popping_sale = DB::table('raw_material_profits')->select(DB::raw('COALESCE(SUM(total_profits)) as total ,MONTH(voucher_date) as month, YEAR(voucher_date) as year'))->groupBy(DB::raw('YEAR(voucher_date) ASC, MONTH(voucher_date) ASC'))->get();
 
+
+        // return response()->json( $monthly_popping_sale);
         return response()->json([
 
             'monthly_sales' => getIntValue($monthly_sales),
@@ -126,6 +128,23 @@ class VoucherController extends apiBaseController
 
         ]);
 
+    }
+
+    public function getSalesTotal()
+    {
+        $grandTotal = Voucher::all()->sum('voucher_grand_total');
+
+
+        $monthly_sales = Voucher::whereYear('date',Carbon::now())->whereMonth('date',Carbon::now())->get()->sum('voucher_grand_total');
+
+
+        $today_sales = Voucher::whereYear('date',Carbon::now())->whereMonth('date',Carbon::now())->whereDay('date',Carbon::now())->get()->sum('voucher_grand_total');
+
+        return response()->json([
+            'total_sales' => $grandTotal,
+            'this_month_sales'=>$monthly_sales,
+            'today_sales' => $today_sales
+        ]);
     }
 
     public function reduceRawMaterial($product_id){

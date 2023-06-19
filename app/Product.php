@@ -12,6 +12,7 @@ class Product extends Model
     	'description',
     	'photo',
         'discount_id',
+        'display_index',
     	'custom_discount_id',
     	'custom_promotion_id',
         'option_flag',

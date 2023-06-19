@@ -178,7 +178,7 @@ class ProductController extends apiBaseController
         }
 
         $product->name = $request->name;
-        $product->display_index =$request->display_index;
+        $product->display_index =intval($request->display_index);
         $product->category_id = intval($request->category_id);
         $product->description = $request->description;
         $product->photo = $image??'default.png';
@@ -208,7 +208,7 @@ class ProductController extends apiBaseController
         }
 
         $product->name = $request->name;
-        $product->display_index =$request->display_index;
+        $product->display_index =intval($request->display_index);
         $product->category_id =  intval($request->category_id);
         $product->description = $request->description;
         $product->save();

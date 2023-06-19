@@ -16,7 +16,7 @@ class ProductController extends apiBaseController
 {
     public function all(){
 
-        $products = Product::with('ingredients')->get();
+        $products = Product::with('ingredients')->orderBy('display_index','ASC')->get();
 
         foreach ($products as $product) {
             if ($product->custom_discount_id != null) {

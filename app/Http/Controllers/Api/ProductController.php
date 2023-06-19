@@ -72,7 +72,6 @@ class ProductController extends apiBaseController
     }
 
     public function store(Request $request){
-
         $validator = Validator::make($request->all(), [
             "name" => "required",
             "category_id" => "required",
@@ -82,11 +81,12 @@ class ProductController extends apiBaseController
             return $this->sendError('အချက်အလက် များ မှားယွင်း နေပါသည်။');
         }
 
-        if ($request->hasfile('photo')) {
+        if ($request->hasFile('photo')) {
 
             $image = $request->file('photo');
+
             $name = $image->getClientOriginalName();
-            $image->move(public_path() . '/image/product/', $name);
+           $image->move(public_path().'/image/product/', $name);
             $image = $name;
         }
 
